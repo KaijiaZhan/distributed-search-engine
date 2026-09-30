@@ -6,6 +6,11 @@
 #include <algorithm>
 #include <utility>
 
+struct SearchResult {
+    int documentId;
+    int score;
+};
+
 int main () {
     Document document;
     document.id = 1;
@@ -24,7 +29,7 @@ int main () {
     InvertedIndex index;
 
     for (const auto& doc : documents){
-        auto tokens = tokenizer.tokenize(doc.content);
+        auto tokens = tokenizer.tokenize(doc.content);  
         index.addDocument(doc.id, tokens);
     }
 
@@ -40,14 +45,42 @@ int main () {
         return 0;
     }
 
-    std::vector<int> results = index.search(queryTokens[0]);
+    std::vector<SearchResult> scoredResults;
+
+    for (const auto& queryToken: queryTokens){
+        auto postings = index.getPostings(queryToken);
+
+        for (const auto& posting : postings) {
+
+            auto existingResult = std::find_if(
+                scoredResults.begin(), 
+                scoredResults.end(), 
+                [posting](const SearchResult& result){
+                    return result.documentId == posting.documentId;
+            });
+
+            if (existingResult != scoredResults.end()) {
+                existingResult->score += posting.frequency;
+            }
+            else {
+                SearchResult result;
+                result.documentId = posting.documentId;
+                result.score = posting.frequency;
+
+                scoredResults.push_back(result);
+            }
+        }
+    }
+
+    std::vector<int> matchingDocumentIds = index.search(queryTokens[0]);
 
     for (size_t i = 1; i < queryTokens.size(); i++){
         auto tokenResults = index.search(queryTokens[i]);
 
         std::vector<int> intersection;
 
-        for (const auto& documentId : results){
+        for (const auto& documentId : matchingDocumentIds){
+
             auto it = std::find(tokenResults.begin(), tokenResults.end(), documentId);
 
             if (it != tokenResults.end()){
@@ -55,22 +88,45 @@ int main () {
             }
         }
 
-        results = std::move(intersection);
+        matchingDocumentIds = std::move(intersection);
 
-        if (results.empty()){
+        if (matchingDocumentIds.empty()){
             break;
         }
     }
 
+    scoredResults.erase(
+        std::remove_if(
+            scoredResults.begin(),
+            scoredResults.end(),
+            [&matchingDocumentIds](const SearchResult& result){
+                return std::find(
+                    matchingDocumentIds.begin(),
+                    matchingDocumentIds.end(),
+                    result.documentId
+                ) == matchingDocumentIds.end();
+            }
+        ),
+        scoredResults.end()
+    );
+
+    std::sort(
+        scoredResults.begin(), 
+        scoredResults.end(), 
+        [](const SearchResult& a, const SearchResult& b){
+            return a.score > b.score;
+        }
+    );
+
     std::cout << "Search results for " << searchTerm << ":" << std::endl;
 
-    if (results.empty()){
+    if (scoredResults.empty()){
         std::cout << "No results found." << std::endl;
     }
 
-    for (const auto& documentId : results) {
+    for (const auto& result : scoredResults) {
         for (const auto& doc : documents) {
-            if (doc.id == documentId){
+            if (doc.id == result.documentId){
                 std::cout << doc.title << std::endl;
                 break;
             }
