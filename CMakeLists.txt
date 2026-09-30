@@ -9,6 +9,7 @@ add_executable(
     search_engine
     indexer/src/main.cpp
     indexer/src/tokenizer.cpp
+    indexer/src/inverted_index.cpp
 )
 
 target_include_directories(
