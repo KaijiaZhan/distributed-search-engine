@@ -10,6 +10,7 @@ add_executable(
     indexer/src/main.cpp
     indexer/src/tokenizer.cpp
     indexer/src/inverted_index.cpp
+    indexer/src/document_loader.cpp
 )
 
 target_include_directories(

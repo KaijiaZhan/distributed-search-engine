@@ -1,6 +1,7 @@
 #include "tokenizer.h"
 #include "document.h"
 #include "inverted_index.h"
+#include "document_loader.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -13,17 +14,14 @@ struct SearchResult {
 };
 
 int main () {
-    Document document;
-    document.id = 1;
-    document.title = "Introduction to Distributed Systems";
-    document.content = "Distributed systems use multiple computers to solve problems.";
 
-    Document document2;
-    document2.id = 2;
-    document2.title = "Introduction to Programming";
-    document2.content = "Computers execute programs written by developers. Computers are powerful.";
+    DocumentLoader loader;
+    auto documents = loader.loadDocuments("../documents");
 
-    std::vector<Document> documents = {document, document2};
+    if (documents.empty()){
+        std::cout << "No documents found." << std::endl;
+        return 1;
+    }
 
     Tokenizer tokenizer;
 
