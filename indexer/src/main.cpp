@@ -5,10 +5,11 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
+#include <cmath>
 
 struct SearchResult {
     int documentId;
-    int score;
+    double score;
 };
 
 int main () {
@@ -33,6 +34,8 @@ int main () {
         index.addDocument(doc.id, tokens);
     }
 
+    double idf = std::log(static_cast<double>(documents.size())/index.getDocumentFrequency("computers"));
+
     std::string searchTerm;
 
     std::cout << "Enter a search term: ";
@@ -50,6 +53,14 @@ int main () {
     for (const auto& queryToken: queryTokens){
         auto postings = index.getPostings(queryToken);
 
+        int documentFrequency = index.getDocumentFrequency(queryToken);
+
+        if (documentFrequency == 0){
+            continue;
+        }
+
+        double queryIdf = std::log(static_cast<double>(documents.size() + 1)/documentFrequency + 1) + 1;
+
         for (const auto& posting : postings) {
 
             auto existingResult = std::find_if(
@@ -60,12 +71,12 @@ int main () {
             });
 
             if (existingResult != scoredResults.end()) {
-                existingResult->score += posting.frequency;
+                existingResult->score += posting.frequency * queryIdf;
             }
             else {
                 SearchResult result;
                 result.documentId = posting.documentId;
-                result.score = posting.frequency;
+                result.score = posting.frequency * queryIdf;
 
                 scoredResults.push_back(result);
             }

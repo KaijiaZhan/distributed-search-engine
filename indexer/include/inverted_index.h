@@ -13,6 +13,7 @@ class InvertedIndex {
         void addDocument(int documentId, const std::vector<std::string>& tokens);
         std::vector<int> search(const std::string& term) const;
         std::vector<Posting> getPostings(const std::string& term) const;
+        int getDocumentFrequency(const std::string& term) const;
     private:
         std::unordered_map<std::string, std::vector<Posting>> index_;
 };

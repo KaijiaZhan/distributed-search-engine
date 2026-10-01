@@ -49,3 +49,13 @@ std::vector<Posting> InvertedIndex::getPostings(const std::string& term) const {
 
     return it->second;
 }
+
+int InvertedIndex::getDocumentFrequency(const std::string& term) const{
+    auto it = index_.find(term);
+
+    if (it == index_.end()){
+        return 0;
+    }
+
+    return static_cast<int>(it->second.size());
+}
