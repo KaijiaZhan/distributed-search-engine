@@ -2,6 +2,13 @@
 #include <algorithm>
 
 void InvertedIndex::addDocument(int documentId, const std::vector<std::string>& tokens) {
+
+    documentLengths_[documentId] = static_cast<int>(tokens.size());
+
+    totalDocumentLength_ += static_cast<int>(tokens.size());
+
+    documentCount_++;
+
     for (const auto& token : tokens){
 
         auto& postings = index_[token];
@@ -58,4 +65,22 @@ int InvertedIndex::getDocumentFrequency(const std::string& term) const{
     }
 
     return static_cast<int>(it->second.size());
+}
+
+int InvertedIndex::getDocumentLength(int documentId) const{
+    auto it = documentLengths_.find(documentId);
+
+    if (it == documentLengths_.end()){
+        return 0;
+    }
+
+    return it->second;
+}
+
+double InvertedIndex::getAverageDocumentLength() const {
+    if (documentCount_ == 0){
+        return 0.0;
+    }
+
+    return static_cast<double>(totalDocumentLength_) / documentCount_;
 }

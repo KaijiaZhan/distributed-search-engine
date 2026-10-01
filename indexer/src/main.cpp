@@ -30,11 +30,10 @@ int main () {
     InvertedIndex index;
 
     for (const auto& doc : documents){
-        auto tokens = tokenizer.tokenize(doc.content);  
+        auto tokens = tokenizer.tokenize(doc.content);
+        
         index.addDocument(doc.id, tokens);
     }
-
-    double idf = std::log(static_cast<double>(documents.size())/index.getDocumentFrequency("computers"));
 
     std::string searchTerm;
 
@@ -59,9 +58,29 @@ int main () {
             continue;
         }
 
-        double queryIdf = std::log(static_cast<double>(documents.size() + 1)/documentFrequency + 1) + 1;
+        double queryIdf = std::log(
+            static_cast<double>(documents.size() + 1)/(documentFrequency + 1)
+        ) + 1;
 
         for (const auto& posting : postings) {
+
+            int documentLength = index.getDocumentLength(posting.documentId);
+
+            double averageDocumentLength = index.getAverageDocumentLength();
+
+            if (averageDocumentLength == 0.0 ){
+                continue;
+            }
+
+            double lengthRatio = static_cast<double>(documentLength) / averageDocumentLength;
+
+            double b = 0.75;
+
+            double k1 = 1.5;
+
+            double lengthNormalization = (1.0 - b) + (b * lengthRatio);
+
+            double bm25Tf = (posting.frequency * (k1 + 1.0)) / (posting.frequency + (k1 * lengthNormalization));
 
             auto existingResult = std::find_if(
                 scoredResults.begin(), 
@@ -71,12 +90,12 @@ int main () {
             });
 
             if (existingResult != scoredResults.end()) {
-                existingResult->score += posting.frequency * queryIdf;
+                existingResult->score += bm25Tf * queryIdf;
             }
             else {
                 SearchResult result;
                 result.documentId = posting.documentId;
-                result.score = posting.frequency * queryIdf;
+                result.score = bm25Tf * queryIdf;
 
                 scoredResults.push_back(result);
             }
