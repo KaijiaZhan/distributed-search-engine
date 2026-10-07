@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <utility>
 #include <cmath>
+#include <chrono>
 
 struct SearchResult {
     int documentId;
@@ -16,7 +17,7 @@ struct SearchResult {
 int main () {
 
     DocumentLoader loader;
-    auto documents = loader.loadDocuments("../documents");
+    auto documents = loader.loadDocuments("../generated_documents");
 
     if (documents.empty()){
         std::cout << "No documents found." << std::endl;
@@ -24,19 +25,25 @@ int main () {
     }
 
     Tokenizer tokenizer;
-
     InvertedIndex index;
+
+    auto indexStart = std::chrono::high_resolution_clock::now();
 
     for (const auto& doc : documents){
         auto tokens = tokenizer.tokenize(doc.content);
-        
         index.addDocument(doc.id, tokens);
     }
+
+    auto indexEnd = std::chrono::high_resolution_clock::now();
+
+    auto indexDuration = std::chrono::duration_cast<std::chrono::microseconds>(indexEnd - indexStart);
 
     std::string searchTerm;
 
     std::cout << "Enter a search term: ";
     std::getline(std::cin, searchTerm);
+
+    auto searchStart = std::chrono::high_resolution_clock::now();
 
     auto queryTokens = tokenizer.tokenize(searchTerm);
 
@@ -146,13 +153,37 @@ int main () {
         }
     );
 
+    auto searchEnd = std::chrono::high_resolution_clock::now();
+
+    auto searchDuration = std::chrono::duration_cast<std::chrono::microseconds>(searchEnd - searchStart);
+
+    std::cout << "Search completed in " << searchDuration.count() << " microseconds." << std::endl;
+
     std::cout << "Search results for " << searchTerm << ":" << std::endl;
+
+    std::cout << "Total matches: " << scoredResults.size() << std::endl;
 
     if (scoredResults.empty()){
         std::cout << "No results found." << std::endl;
     }
 
-    for (const auto& result : scoredResults) {
+    // for (const auto& result : scoredResults) {
+    //     for (const auto& doc : documents) {
+    //         if (doc.id == result.documentId){
+    //             std::cout << doc.title << std::endl;
+    //             break;
+    //         }
+    //     }
+    // }
+
+    size_t resultsToShow = std::min(
+        scoredResults.size(),
+        static_cast<size_t>(10)
+    );
+
+    for (size_t i = 0; i < resultsToShow; i++) {
+        const auto& result = scoredResults[i];
+
         for (const auto& doc : documents) {
             if (doc.id == result.documentId){
                 std::cout << doc.title << std::endl;

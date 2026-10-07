@@ -1,0 +1,1 @@
+Machine learning allows computers to learn patterns from data and make predictions without being explicitly programmed. Machine learning systems are used in search engines, recommendation systems, computer vision, and natural language processing. Large machine learning applications may use distributed computing to process data across multiple computers.
