@@ -1,0 +1,1 @@
+Cloud computing allows applications to use computing resources across networks of computers. Distributed systems are an important part of modern cloud computing because services can run across multiple computers. Cloud platforms provide storage, networking, databases, and computing resources that allow developers to build scalable applications.

@@ -2,13 +2,22 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 std::vector<Document> DocumentLoader::loadDocuments(const std::string& directoryPath){
     std::vector<Document> documents;
 
     int nextDocumentId = 1;
 
+    std::vector<std::filesystem::path> filePaths;
+
+    if (!std::filesystem::exists(directoryPath) || !std::filesystem::is_directory(directoryPath)) {
+        return documents;
+    }
+
+
     for (const auto& entry : std::filesystem::directory_iterator(directoryPath)){
+
 
         if (!entry.is_regular_file()){
 
@@ -20,6 +29,14 @@ std::vector<Document> DocumentLoader::loadDocuments(const std::string& directory
         if (filePath.extension() != ".txt"){
             continue;
         }
+
+        filePaths.push_back(filePath);
+
+    }
+
+    std::sort(filePaths.begin(), filePaths.end());
+
+    for (const auto& filePath: filePaths){
 
         std::ifstream file(filePath);
 

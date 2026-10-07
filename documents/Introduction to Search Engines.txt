@@ -1,0 +1,1 @@
+Search engines process documents and build inverted indexes to find relevant information. Distributed search engines can process large collections of documents across multiple computers.
