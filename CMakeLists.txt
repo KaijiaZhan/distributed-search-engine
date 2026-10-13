@@ -11,6 +11,8 @@ add_executable(
     indexer/src/tokenizer.cpp
     indexer/src/inverted_index.cpp
     indexer/src/document_loader.cpp
+    indexer/src/index_storage.cpp
+    indexer/src/document_fingerprint.cpp
 )
 
 target_include_directories(
